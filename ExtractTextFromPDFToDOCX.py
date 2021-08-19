@@ -1,30 +1,20 @@
-# Description: this program extracts text from a PDF file and dumps it into a newly created DOCX file.
+# Description: 
+# This program extracts text from a PDF file and dumps it into a newly created DOCX file.
 # It is done character per character and maintains bold and/or italic formatting.
 #
-# How to use: provide the full path of the directory where the PDF file is located and
+# How to use:
+# Provide the full path of the directory where the PDF file is located and
 # the full name of the PDF file in the respective fields of the user interface, then click "Extract".
 # A new DOCX file will be created in the same directory with the same name.
 #
-# Last updated: 2021-08-17
-#
-# Author: Lucca Gonçalves
+# Author:
+# Lucca Gonçalves
 
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer, LTChar
 from docx import Document
 from PySimpleGUI import PySimpleGUI as sg
 import os.path
-
-# # The code belows formats strings to make sure they only contain valid xml characters
-# def valid_xml_char_ordinal(c):
-#     codepoint = ord(c)
-#     # Conditions ordered by presumed frequency
-#     return (
-#         0x20 <= codepoint <= 0xD7FF or
-#         codepoint in (0x9, 0xA, 0xD) or
-#         0xE000 <= codepoint <= 0xFFFD or
-#         0x10000 <= codepoint <= 0x10FFFF
-#         )
 
 # The code below extracts text from a PDF file and writes it to a DOCX file
 # It is done character by character and it mantains bold and/or italic formatting
@@ -33,7 +23,9 @@ def extract_text_to_document(document, complete_path):
         for element in page_layout:
             if isinstance(element, LTTextContainer):
                 prg = document.add_paragraph('')
+                first_line = True
                 for text_line in element:
+                    line_beggining = True
                     for character in text_line:
                         if isinstance(character, LTChar):
                             run = prg.add_run(character.get_text())
@@ -45,8 +37,13 @@ def extract_text_to_document(document, complete_path):
                                 run.italic = True
                             if "Italic" in character.fontname:
                                 run.italic = True
-                            #print(character.fontname)
-                            #print(character.size)
+                            if line_beggining == True and first_line == False:
+                                if 97 <= ord(last_run.text) <= 122 and (65 <= ord(run.text) <= 90 or 48 <= ord(run.text) <= 57):
+                                    last_run.add_break()
+                            last_run = run
+                            line_beggining = False
+                    first_line = False
+                        
     return
 
 # Setting the layout of the GUI
@@ -77,6 +74,6 @@ while True:
         complete_path = os.path.join(pdf_path, pdf_file)
 
         document = Document()
-        extract_text_to_document(document, complete_path)
-        document.save(complete_path.replace("pdf", "docx"))
+        extract_text_to_document(document, pdf_file) # TODO: make it work with absolute paths
+        document.save(pdf_file.replace("pdf", "docx"))
         break
