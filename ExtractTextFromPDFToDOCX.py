@@ -3,9 +3,8 @@
 # It is done character per character and maintains bold and/or italic formatting.
 #
 # How to use:
-# Provide the full path of the directory where the PDF file is located and
-# the full name of the PDF file in the respective fields of the user interface, then click "Extract".
-# A new DOCX file will be created in the same directory with the same name.
+# Provide the absolute path of the PDF file to the input box, then click "Extract".
+# The new DOCX file will be moved the same directory where the PDF file is.
 #
 # Author:
 # Lucca Gonçalves
@@ -15,6 +14,8 @@ from pdfminer.layout import LTTextContainer, LTChar
 from docx import Document
 from PySimpleGUI import PySimpleGUI as sg
 import os.path
+import shutil
+import os
 
 # The code below extracts text from a PDF file and writes it to a DOCX file
 # It is done character by character and it mantains bold and/or italic formatting
@@ -29,13 +30,13 @@ def extract_text_to_document(document, complete_path):
                     for character in text_line:
                         if isinstance(character, LTChar):
                             run = prg.add_run(character.get_text())
-                            if "bold" in character.fontname:
+                            if 'bold' in character.fontname:
                                 run.bold = True
-                            if "Bold" in character.fontname:
+                            if 'Bold' in character.fontname:
                                 run.bold = True
-                            if "italic" in character.fontname:
+                            if 'italic' in character.fontname:
                                 run.italic = True
-                            if "Italic" in character.fontname:
+                            if 'Italic' in character.fontname:
                                 run.italic = True
                             if line_beggining == True and first_line == False:
                                 if 97 <= ord(last_run.text) <= 122 and (65 <= ord(run.text) <= 90 or 48 <= ord(run.text) <= 57):
@@ -47,15 +48,14 @@ def extract_text_to_document(document, complete_path):
     return
 
 # Setting the layout of the GUI
-sg.theme("Reddit")
+sg.theme('Reddit')
 layout = [
-    [sg.Text("Path:"), sg.Input(key="path")],
-    [sg.Text("File:"), sg.Input(key="file")],
-    [sg.Button("Extract")]
+    [sg.Text('Absolute path to PDF file:'), sg.Input(key='path')],
+    [sg.Button('Extract')]
 ]
 
 # Generating the GUI
-window = sg.Window("Extract text from PDF to DOCX", layout)
+window = sg.Window('Extract text from PDF to DOCX', layout)
 
 # Reading the events that happen in the GUI
 while True:
@@ -67,13 +67,15 @@ while True:
         break
 
     # Start text extraction after user has given the input and clicked "Extract"
-    if events == "Extract":
+    if events == 'Extract':
 
-        pdf_path = values['path']
-        pdf_file = values['file']
-        complete_path = os.path.join(pdf_path, pdf_file)
+        abs_path = os.path.abspath(values['path'].replace('"', ''))
+        print(abs_path)
+        abs_path_dir, pdf_file = os.path.split(abs_path)
 
         document = Document()
-        extract_text_to_document(document, pdf_file) # TODO: make it work with absolute paths
-        document.save(pdf_file.replace("pdf", "docx"))
+        extract_text_to_document(document, abs_path)
+        document.save(pdf_file.replace('pdf', 'docx'))
+        cwd = os.getcwd()
+        shutil.move(os.path.join(cwd, pdf_file.replace('pdf', 'docx')), abs_path.replace('pdf', 'docx'))
         break
