@@ -12,6 +12,7 @@
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer, LTChar
 from docx import Document
+from docx.shared import RGBColor
 from PySimpleGUI import PySimpleGUI as sg
 import os.path
 import shutil
@@ -20,7 +21,14 @@ import os
 # The code below extracts text from a PDF file and writes it to a DOCX file
 # It is done character by character and it mantains bold and/or italic formatting
 def extract_text_to_document(document, complete_path):
+    pg_counter = 0
     for page_layout in extract_pages(complete_path):
+        pg_counter += 1
+        prg = document.add_paragraph('')
+        run = prg.add_run('Page ' + str(pg_counter))
+        font = run.font
+        font.color.rgb = RGBColor(255, 0, 0)
+        font.hidden = True
         for element in page_layout:
             if isinstance(element, LTTextContainer):
                 prg = document.add_paragraph('')
