@@ -17,6 +17,7 @@ from PySimpleGUI import PySimpleGUI as sg
 import os.path
 import shutil
 import os
+import sys
 
 # The code below extracts text from a PDF file and writes it to a DOCX file
 # It is done character by character and it mantains bold and/or italic formatting
@@ -78,12 +79,11 @@ while True:
     if events == 'Extract':
 
         abs_path = os.path.abspath(values['path'].replace('"', ''))
-        print(abs_path)
         abs_path_dir, pdf_file = os.path.split(abs_path)
 
         document = Document()
         extract_text_to_document(document, abs_path)
         document.save(pdf_file.replace('pdf', 'docx'))
-        cwd = os.getcwd()
-        shutil.move(os.path.join(cwd, pdf_file.replace('pdf', 'docx')), abs_path.replace('pdf', 'docx'))
+        script_path = sys.path[0]
+        shutil.move(os.path.join(script_path, pdf_file.replace('pdf', 'docx')), abs_path_dir)
         break
