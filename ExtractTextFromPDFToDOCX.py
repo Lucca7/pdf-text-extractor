@@ -15,7 +15,6 @@ from docx import Document
 from docx.shared import RGBColor
 from PySimpleGUI import PySimpleGUI as sg
 import os.path
-import shutil
 import os
 import sys
 
@@ -38,6 +37,7 @@ def extract_text_to_document(document, complete_path):
                     line_beggining = True
                     for character in text_line:
                         if isinstance(character, LTChar):
+                            #print(character.get_text())
                             run = prg.add_run(character.get_text())
                             if 'bold' in character.fontname:
                                 run.bold = True
@@ -48,7 +48,11 @@ def extract_text_to_document(document, complete_path):
                             if 'Italic' in character.fontname:
                                 run.italic = True
                             if line_beggining == True and first_line == False:
-                                if 97 <= ord(last_run.text) <= 122 and (65 <= ord(run.text) <= 90 or 48 <= ord(run.text) <= 57):
+                                if (len(last_run.text) > 1):
+                                    last_run_text = last_run.text[-1]
+                                else:
+                                    last_run_text = last_run.text
+                                if 97 <= ord(last_run_text) <= 122 and (65 <= ord(run.text[0]) <= 90 or 48 <= ord(run.text[0]) <= 57):
                                     last_run.add_break()
                             last_run = run
                             line_beggining = False
@@ -83,7 +87,6 @@ while True:
 
         document = Document()
         extract_text_to_document(document, abs_path)
+        os.chdir(abs_path_dir)
         document.save(pdf_file.replace('pdf', 'docx'))
-        script_path = sys.path[0]
-        shutil.move(os.path.join(script_path, pdf_file.replace('pdf', 'docx')), abs_path_dir)
         break
